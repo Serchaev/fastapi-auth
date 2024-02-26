@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_PREFIX: str
 
+    REDIRECT_ACTIVATE_PROFILE: str
+
     @property
     def db_url(self) -> str:
         return f"mongodb://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?authSource=admin"  # noqa

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, constr, Field
 
 
 class RegisterSchema(BaseModel):
@@ -13,3 +13,13 @@ class RegisterSchema(BaseModel):
 
 class RegisterSchemaBody(RegisterSchema):
     pass
+
+
+class RegisterSchemaAnswer(BaseModel):
+    id: str = Field(alias="_id")
+    username: str
+    hashed_password: str
+    email: str
+    first_name: str
+    last_name: Optional[str]
+    created_at: str

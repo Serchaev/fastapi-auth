@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from pymongo.database import Database
+from pymongo.results import UpdateResult
 
 from app.api_v1.services import AuthService, UserService
 from app.auth.utils import hash_password
@@ -30,7 +31,32 @@ class AuthController:
             )
         new_user["hashed_password"] = hash_password(new_user["password"])
         new_user.pop("password")
-        return await AuthService.register(
+        result = await AuthService.register(
             db=db,
             new_user=User(**new_user),
         )
+        inserted_user = await UserService.find_one(
+            db=db,
+            **{"_id": result.inserted_id},
+        )
+        inserted_user["_id"] = str(inserted_user["_id"])
+        return inserted_user
+
+    @classmethod
+    async def activate_profile(cls, db: Database, link: str):
+        user: User = await UserService.find_one(
+            db=db,
+            **{"profile.activation_link": link, "profile.is_activated": False},
+        )
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Profile with activation_link - {link} not found!",
+            )
+        result: UpdateResult = await UserService.update(
+            db=db,
+            user_id=user["_id"],
+            **{"profile.is_activated": True},
+        )
+        if not result.acknowledged:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
