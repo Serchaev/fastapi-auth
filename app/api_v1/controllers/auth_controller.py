@@ -90,3 +90,9 @@ class AuthController:
             ),
         )
         return tokens
+
+    @classmethod
+    async def logout(cls, db: Database, refresh_token: str):
+        result = await AuthService.logout(db=db, refresh_token=refresh_token)
+        if not result.acknowledged:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

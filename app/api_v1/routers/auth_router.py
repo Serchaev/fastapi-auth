@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 from pymongo.database import Database
 
@@ -42,7 +42,9 @@ async def login(
 ) -> LoginSchemaAnswer:
     tokens = await AuthController.login(db=db, login_data=login_data)
     response.set_cookie(
-        key="refresh_token", value=tokens["refresh_token"], httponly=True
+        key="refresh_token",
+        value=tokens["refresh_token"],
+        httponly=True,
     )
     return {
         "access_token": tokens["access_token"],
@@ -50,11 +52,25 @@ async def login(
     }
 
 
+async def get_refresh_from_cookie(refresh_token: str = Cookie(alias="refresh_token")):
+    if refresh_token is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Cookie not found",
+        )
+    return refresh_token
+
+
 @router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout():
-    pass
+async def logout(
+    response: Response,
+    refresh_token: str = Depends(get_refresh_from_cookie),
+    db: Database = Depends(db_factory.session_depends),
+):
+    await AuthController.logout(db=db, refresh_token=refresh_token)
+    response.delete_cookie("refresh_token")
 
 
 @router.post("/refresh", status_code=status.HTTP_200_OK)
-async def refresh():
+async def refresh(refresh_token: str = Cookie(None)):
     pass

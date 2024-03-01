@@ -15,3 +15,8 @@ class AuthService:
     async def token_save(cls, db: Database, token: Token):
         tokens_collection: AsyncIOMotorCollection = db.tokens
         return await tokens_collection.insert_one(token.model_dump())
+
+    @classmethod
+    async def logout(cls, db: Database, refresh_token: str):
+        tokens_collection: AsyncIOMotorCollection = db.tokens
+        return await tokens_collection.delete_one({"refresh_token": refresh_token})
