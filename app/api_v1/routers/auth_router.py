@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import RedirectResponse
 from pymongo.database import Database
 
 from app.api_v1.controllers import AuthController
+from app.api_v1.depends import get_current_active_auth_user, get_refresh_from_cookie
 from app.api_v1.schemas import (
     LoginSchemaAnswer,
     LoginSchemaBody,
     RegisterSchemaAnswer,
     RegisterSchemaBody,
+    ValidateSchemaAnswer,
 )
 from app.core import db_factory, settings
 
@@ -52,15 +54,6 @@ async def login(
     }
 
 
-async def get_refresh_from_cookie(refresh_token: str = Cookie(alias="refresh_token")):
-    if refresh_token is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Refresh token not found",
-        )
-    return refresh_token
-
-
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(
     response: Response,
@@ -87,3 +80,10 @@ async def refresh(
         "access_token": tokens["access_token"],
         "token_type": "Bearer",
     }
+
+
+@router.post("/validate", status_code=status.HTTP_200_OK)
+async def validate(
+    payload=Depends(get_current_active_auth_user),
+) -> ValidateSchemaAnswer:
+    return payload

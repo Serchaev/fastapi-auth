@@ -1,5 +1,4 @@
 from fastapi import HTTPException, status
-from jwt import InvalidTokenError
 from pymongo.database import Database
 from pymongo.results import UpdateResult
 
@@ -102,14 +101,7 @@ class AuthController:
     @classmethod
     async def refresh(cls, db: Database, refresh_token: str):
         await cls.logout(db=db, refresh_token=refresh_token)
-        try:
-            payload = await TokenService.validate_token(token=refresh_token)
-        except InvalidTokenError as e:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token error",
-            )
-
+        payload = await TokenService.validate_token(token=refresh_token)
         find_user = await UserService.find_one(
             db=db,
             username=payload["username"],
