@@ -2,9 +2,10 @@ from fastapi import HTTPException, status
 from pymongo.database import Database
 from pymongo.results import UpdateResult
 
-from app.api_v1.services import AuthService, UserService
-from app.auth.utils import hash_password
-from app.core.models import User
+from app.api_v1.schemas import LoginSchemaBody
+from app.api_v1.services import AuthService, UserService, TokenService
+from app.auth.utils import hash_password, validate_password
+from app.core.models import User, Token
 
 
 class AuthController:
@@ -60,3 +61,32 @@ class AuthController:
         )
         if not result.acknowledged:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @classmethod
+    async def login(cls, db: Database, login_data: LoginSchemaBody):
+        data = {"username": str(login_data.login)}
+        if "@" in login_data.login:
+            data["email"] = data.pop("username")
+        find_user = await UserService.find_one(
+            db=db,
+            **data,
+        )
+        print(find_user)
+        if find_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Invalid username or password.",
+            )
+        if not validate_password(login_data.password, find_user.get("hashed_password")):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Invalid username or password.",
+            )
+        tokens = await TokenService.generate_tokens(find_user)
+        await AuthService.token_save(
+            db=db,
+            token=Token(
+                refresh_token=tokens["refresh_token"], user_id=find_user["_id"]
+            ),
+        )
+        return tokens

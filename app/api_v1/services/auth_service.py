@@ -1,7 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo.database import Database
 
-from app.core.models import User
+from app.core.models import User, Token
 
 
 class AuthService:
@@ -12,5 +12,6 @@ class AuthService:
         return await users_collection.insert_one(new_user.model_dump())
 
     @classmethod
-    async def activate_profile(cls, db: Database, link: str):
-        pass
+    async def token_save(cls, db: Database, token: Token):
+        tokens_collection: AsyncIOMotorCollection = db.tokens
+        return await tokens_collection.insert_one(token.model_dump())
