@@ -55,8 +55,8 @@ async def login(
 async def get_refresh_from_cookie(refresh_token: str = Cookie(alias="refresh_token")):
     if refresh_token is None:
         raise HTTPException(
-            status_code=404,
-            detail="Cookie not found",
+            status_code=401,
+            detail="Refresh token not found",
         )
     return refresh_token
 
@@ -72,5 +72,18 @@ async def logout(
 
 
 @router.post("/refresh", status_code=status.HTTP_200_OK)
-async def refresh(refresh_token: str = Cookie(None)):
-    pass
+async def refresh(
+    response: Response,
+    refresh_token: str = Depends(get_refresh_from_cookie),
+    db: Database = Depends(db_factory.session_depends),
+):
+    tokens = await AuthController.refresh(db=db, refresh_token=refresh_token)
+    response.set_cookie(
+        key="refresh_token",
+        value=tokens["refresh_token"],
+        httponly=True,
+    )
+    return {
+        "access_token": tokens["access_token"],
+        "token_type": "Bearer",
+    }
