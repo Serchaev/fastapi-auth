@@ -3,9 +3,9 @@ from pymongo.database import Database
 from pymongo.results import UpdateResult
 
 from app.api_v1.schemas import LoginSchemaBody
-from app.api_v1.services import AuthService, UserService, TokenService
+from app.api_v1.services import AuthService, TokenService, UserService
 from app.auth.utils import hash_password, validate_password
-from app.core.models import User, Token
+from app.core.models import Token, User
 
 
 class AuthController:
@@ -75,12 +75,12 @@ class AuthController:
         if find_user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Invalid username or password.",
+                detail="Invalid username or password.",
             )
         if not validate_password(login_data.password, find_user.get("hashed_password")):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Invalid username or password.",
+                detail="Invalid username or password.",
             )
         tokens = await TokenService.generate_tokens(find_user)
         await AuthService.token_save(

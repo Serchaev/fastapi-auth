@@ -1,2 +1,2 @@
-from .register_schemas import RegisterSchemaBody, RegisterSchemaAnswer
-from .login_schemas import LoginSchemaBody, LoginSchemaAnswer
+from .login_schemas import LoginSchemaAnswer, LoginSchemaBody
+from .register_schemas import RegisterSchemaAnswer, RegisterSchemaBody

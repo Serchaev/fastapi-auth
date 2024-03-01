@@ -1,7 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo.database import Database
 
-from app.core.models import User, Token
+from app.core.models import Token, User
 
 
 class AuthService:

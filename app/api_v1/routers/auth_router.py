@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, status, Cookie, Response
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import RedirectResponse
 from pymongo.database import Database
 
 from app.api_v1.controllers import AuthController
-from app.api_v1.schemas import RegisterSchemaBody, LoginSchemaAnswer
-from app.api_v1.schemas import LoginSchemaBody
-from app.api_v1.schemas import RegisterSchemaAnswer
+from app.api_v1.schemas import (
+    LoginSchemaAnswer,
+    LoginSchemaBody,
+    RegisterSchemaAnswer,
+    RegisterSchemaBody,
+)
 from app.core import db_factory, settings
 
 router = APIRouter(prefix="/auth", tags=["Аутентификация"])

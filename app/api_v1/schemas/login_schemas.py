@@ -1,6 +1,4 @@
-from typing import Union
-
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class LoginSchemaBody(BaseModel):
