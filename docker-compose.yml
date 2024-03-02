@@ -4,10 +4,60 @@ services:
   mongo_db:
     container_name: mongo_container
     restart: always
-    image: mongo:7.0.5
+    image: bitnami/mongodb:7.0.6
     hostname: mongo
     ports:
       - "27127:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGODB_ROOT_USER: ${DB_USER}
+      MONGODB_ROOT_PASSWORD: ${DB_PASS}
+    volumes:
+      - ./docker/data-mongo:/bitnami/mongodb
+
+  redis_db:
+    container_name: redis_container
+    restart: always
+    image: redis/redis-stack-server:latest
+
+  celery:
+    container_name: celery_container
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-celery
+    env_file:
+      - .env
+    command: celery --app=app.tasks.config:celery_app worker -l INFO
+    depends_on:
+      - mongo_db
+      - redis_db
+
+  flower:
+    container_name: flower_container
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-celery
+    env_file:
+      - .env
+    command: celery --app=app.tasks.config:celery_app flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - celery
+      - mongo_db
+      - redis_db
+
+  app_backend:
+    container_name: app_backend_auth
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - mongo_db
+      - celery
+    ports:
+      - "25565:80"
