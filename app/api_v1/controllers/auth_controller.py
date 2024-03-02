@@ -6,6 +6,7 @@ from app.api_v1.schemas import LoginSchemaBody
 from app.api_v1.services import AuthService, TokenService, UserService
 from app.auth.utils import hash_password, validate_password
 from app.core.models import Token, User
+from app.tasks import activate_account
 
 
 class AuthController:
@@ -41,6 +42,10 @@ class AuthController:
             **{"_id": result.inserted_id},
         )
         inserted_user["_id"] = str(inserted_user["_id"])
+        activate_account.delay(
+            email=inserted_user["email"],
+            link=inserted_user["profile"]["activation_link"],
+        )
         return inserted_user
 
     @classmethod

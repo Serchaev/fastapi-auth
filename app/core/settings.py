@@ -20,6 +20,10 @@ class Settings(BaseSettings):
 
     REDIRECT_ACTIVATE_PROFILE: str
 
+    SMTP_HOST: str
+    SMTP_EMAIL: str
+    SMTP_PASS: str
+
     @property
     def db_url(self) -> str:
         return f"mongodb://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?authSource=admin"  # noqa
